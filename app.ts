@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import { MongoClient } from "mongodb";
 
 const app = express();
+app.use(express.json({ limit: "500mb" }));
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -166,8 +167,132 @@ app.post("/delete-image", async (request, response) => {
 });
 
 // Videos
+app.get("/get-all-videos", async (request, response) => {
+  const client = new MongoClient(uri);
+
+  try {
+    await client.connect();
+    const db = client.db(database);
+    const videosCollection = db.collection("videos");
+    const videos = await videosCollection.find().toArray();
+
+    response.status(200).json(videos);
+  } catch (error) {
+    response.status(500).send("error");
+  } finally {
+    await client.close();
+  }
+});
+
+app.post("/upload-video", async (request, response) => {
+  const { uuid, title, author, base64Video } = request.body;
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+
+    const db = client.db(database);
+    const videosCollection = db.collection("videos");
+    await videosCollection.insertOne({
+      uuid,
+      title,
+      author,
+      base64Video,
+    });
+
+    response.status(200).send({
+      status: 200,
+      message: "Video uploaded successfully",
+    });
+  } catch (error) {
+    response.status(500).send("error");
+  } finally {
+    await client.close();
+  }
+});
+
+app.post("/delete-video", async (request, response) => {
+  const { uuid } = request.body;
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    const db = client.db(database);
+    const videosCollection = db.collection("videos");
+    await videosCollection.findOneAndDelete({ uuid });
+
+    response.status(200).send({
+      status: 200,
+      message: "Video deleted successfully",
+    });
+  } catch (error) {
+    response.status(500).send("error");
+  } finally {
+    await client.close();
+  }
+});
 
 // Material
+app.get("/get-all-material", async (request, response) => {
+  const client = new MongoClient(uri);
+
+  try {
+    await client.connect();
+    const db = client.db(database);
+    const materialCollection = db.collection("materials");
+    const material = await materialCollection.find().toArray();
+
+    response.status(200).json(material);
+  } catch (error) {
+    response.status(500).send("error");
+  } finally {
+    await client.close();
+  }
+});
+
+app.post("/upload-material", async (request, response) => {
+  const { uuid, title, url, base64Icon } = request.body;
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+
+    const db = client.db(database);
+    const materialCollection = db.collection("materials");
+    await materialCollection.insertOne({
+      uuid,
+      title,
+      url,
+      base64Icon,
+    });
+
+    response.status(200).send({
+      status: 200,
+      message: "Material uploaded successfully",
+    });
+  } catch (error) {
+    response.status(500).send("error");
+  } finally {
+    await client.close();
+  }
+});
+
+app.post("/delete-material", async (request, response) => {
+  const { uuid } = request.body;
+  const client = new MongoClient(uri);
+  try {
+    await client.connect();
+    const db = client.db(database);
+    const materialCollection = db.collection("materials");
+    await materialCollection.findOneAndDelete({ uuid });
+
+    response.status(200).send({
+      status: 200,
+      message: "Material deleted successfully",
+    });
+  } catch (error) {
+    response.status(500).send("error");
+  } finally {
+    await client.close();
+  }
+});
 
 // Forums
 app.get("/get-all-forums", async (request, response) => {
